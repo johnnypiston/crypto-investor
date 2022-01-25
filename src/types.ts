@@ -22,3 +22,16 @@ export type TransactionData = Readonly<{
   to: string;
   sum: number;
 }>;
+
+export type TileOptions = {
+  tileName: string;
+  top: number;
+  left: number;
+  height: number;
+  width: number;
+};
+
+export type ParentContainerCoord = {
+  offsetX: number;
+  offsetY: number;
+};

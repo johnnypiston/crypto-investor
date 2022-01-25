@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from "vue-router";
-import InvestorDesktop from "../components/desktop/InvestorDesktop.vue";
-import TransactionTracker from "../components/transaction-tracker/TransactionTracker.vue";
+const InvestorDesktop = () =>
+  import("../components/desktop/InvestorDesktop.vue");
+const TransactionTracker = () =>
+  import("../components/transaction-tracker/TransactionTracker.vue");
 
 const routes = [
   { path: "/", redirect: "/desktop" },
