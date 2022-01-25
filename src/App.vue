@@ -99,6 +99,7 @@ html {
 }
 
 .main-title {
+  margin: 20px 0 15px;
   text-align: center;
 }
 </style>

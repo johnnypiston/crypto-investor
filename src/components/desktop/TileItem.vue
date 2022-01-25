@@ -8,9 +8,8 @@ type Props = {
   tileIndex: number;
 };
 
-const isActive = ref(false);
-const tileElement = ref(null);
-const leftResizer = ref(null);
+const tileElement = ref<HTMLElement | null>(null);
+const leftResizer = ref<HTMLElement | null>(null);
 const offsetX = ref(0);
 const offsetY = ref(0);
 
@@ -21,39 +20,49 @@ const props = withDefaults(defineProps<Props>(), {
     left: 0,
     height: 150,
     width: 150,
+    isActive: false,
   }),
 });
 
-const emit = defineEmits(["moveTile", "resize", "deleteTile"]);
+const emit = defineEmits(["moveTile", "resize", "deleteTile", "setActive"]);
 
 const mousedownHandler = (evt: MouseEvent) => {
   evt.preventDefault();
-  isActive.value = true;
-  offsetY.value = evt.clientY - tileElement.value?.getBoundingClientRect().top;
-  offsetX.value = evt.clientX - tileElement.value?.getBoundingClientRect().left;
-  move(evt.pageX, evt.pageY);
-  document.addEventListener("mousemove", mousemoveHandler);
-  document.addEventListener("mouseup", mouseupHandler);
+
+  emit("setActive", props.tileIndex);
+
+  if (tileElement.value !== null) {
+    offsetY.value = evt.clientY - tileElement.value.getBoundingClientRect().top;
+    offsetX.value =
+      evt.clientX - tileElement.value.getBoundingClientRect().left;
+    move(evt.pageX, evt.pageY);
+    document.addEventListener("mousemove", mousemoveHandler);
+    document.addEventListener("mouseup", mouseupHandler);
+  }
 };
 
 const move = (x: number, y: number) => {
-  emit("moveTile", {
-    tileOptions: {
-      top: y - props.parentContainer.offsetY - offsetY.value,
-      left: x - props.parentContainer.offsetX - offsetX.value,
-    },
-    tileIndex: props.tileIndex,
-  });
+  if (tileElement.value !== null) {
+    emit("moveTile", {
+      tileOptions: {
+        top: y - props.parentContainer.offsetY - offsetY.value,
+        left: x - props.parentContainer.offsetX - offsetX.value,
+      },
+      tileIndex: props.tileIndex,
+    });
+  }
 };
 
 const resize = (event: MouseEvent) => {
-  emit("resize", {
-    tileOptions: {
-      width: event.pageX - tileElement.value?.getBoundingClientRect().left,
-      height: event.pageY - tileElement.value?.getBoundingClientRect().top,
-    },
-    tileIndex: props.tileIndex,
-  });
+  if (tileElement.value !== null) {
+    emit("resize", {
+      tileOptions: {
+        width: event.pageX - tileElement.value?.getBoundingClientRect().left,
+        height: event.pageY - tileElement.value?.getBoundingClientRect().top,
+      },
+      tileIndex: props.tileIndex,
+    });
+  }
 };
 
 const mousemoveHandler = (evt: MouseEvent) => {
@@ -64,14 +73,6 @@ const mouseupHandler = () => {
   document.removeEventListener("mousemove", mousemoveHandler);
 };
 
-onMounted(() => {
-  document.addEventListener("click", (evt) => {
-    if (evt.target !== tileElement.value && evt.target !== leftResizer.value) {
-      isActive.value = false;
-    }
-  });
-});
-
 onBeforeUnmount(() => {
   document.removeEventListener("mouseup", mouseupHandler);
 });
@@ -80,7 +81,7 @@ const stopResize = () => {
   document.removeEventListener("mousemove", resize);
 };
 
-const resizeLeft = (evt) => {
+const resizeLeft = (evt: MouseEvent) => {
   evt.preventDefault();
   evt.stopPropagation();
   document.addEventListener("mousemove", resize);
@@ -92,14 +93,13 @@ const resizeLeft = (evt) => {
   <div
     ref="tileElement"
     class="tile"
-    :class="{ 'tile--active': isActive }"
+    :class="{ 'tile--active': props.tileOptions.isActive }"
     :style="{
       width: tileOptions.width + 'px',
       height: tileOptions.height + 'px',
       top: tileOptions.top + 'px',
       left: tileOptions.left + 'px',
     }"
-    @click="isActive = true"
     @mousedown="mousedownHandler"
   >
     <div class="tile__header">
@@ -108,7 +108,7 @@ const resizeLeft = (evt) => {
         class="btn tile__header-btn"
         type="button"
         title="Удалить"
-        @click.stop="$emit('deleteTile', props.tileIndex)"
+        @click.stop="emit('deleteTile', props.tileIndex)"
       >
         &#10006;
       </button>

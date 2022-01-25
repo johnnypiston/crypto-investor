@@ -29,6 +29,7 @@ export type TileOptions = {
   left: number;
   height: number;
   width: number;
+  isActive: boolean;
 };
 
 export type ParentContainerCoord = {

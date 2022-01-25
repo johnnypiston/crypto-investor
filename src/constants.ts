@@ -11,7 +11,7 @@ export const WebSocketEventCodes = Object.freeze({
 });
 export const DefaultTile = {
   WIDTH: 300,
-  HEIGHT: 150,
+  HEIGHT: 100,
 };
 export const DEFAULT_TILES: TileOptions[] = [
   {
@@ -20,6 +20,7 @@ export const DEFAULT_TILES: TileOptions[] = [
     left: 10,
     height: DefaultTile.HEIGHT,
     width: DefaultTile.WIDTH,
+    isActive: false,
   },
   {
     tileName: "Tile 2",
@@ -27,6 +28,7 @@ export const DEFAULT_TILES: TileOptions[] = [
     left: 330,
     height: DefaultTile.HEIGHT,
     width: DefaultTile.WIDTH,
+    isActive: false,
   },
   {
     tileName: "Tile 3",
@@ -34,6 +36,7 @@ export const DEFAULT_TILES: TileOptions[] = [
     left: 650,
     height: DefaultTile.HEIGHT,
     width: DefaultTile.WIDTH,
+    isActive: false,
   },
   {
     tileName: "Tile 4",
@@ -41,6 +44,7 @@ export const DEFAULT_TILES: TileOptions[] = [
     left: 10,
     height: DefaultTile.HEIGHT,
     width: DefaultTile.WIDTH,
+    isActive: false,
   },
   {
     tileName: "Tile 5",
@@ -48,5 +52,6 @@ export const DEFAULT_TILES: TileOptions[] = [
     left: 330,
     height: DefaultTile.HEIGHT,
     width: DefaultTile.WIDTH,
+    isActive: false,
   },
 ];

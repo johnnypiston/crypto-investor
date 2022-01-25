@@ -6,10 +6,20 @@ import TileItem from "./TileItem.vue";
 
 type EmitingTileOption<T> = { tileOptions: T; tileIndex: number };
 
+const clearActiveStatus = (tiles: TileOptions[]) => {
+  for (const tile of tiles) {
+    tile.isActive = false;
+  }
+};
+
 const setTiles = () => {
   const tiles: TileOptions[] | null = JSON.parse(
     localStorage.getItem("tiles") || "null"
   );
+
+  if (tiles !== null) {
+    clearActiveStatus(tiles);
+  }
 
   return tiles !== null ? tiles : DEFAULT_TILES;
 };
@@ -19,6 +29,10 @@ const setDeletedTiles = () => {
     localStorage.getItem("deletedTiles") || "null"
   );
 
+  if (tiles !== null) {
+    clearActiveStatus(tiles);
+  }
+
   return tiles !== null ? tiles : [];
 };
 
@@ -26,9 +40,10 @@ const DeletedContainer = defineAsyncComponent(
   () => import("./DeletedContainer.vue")
 );
 
-const desktopContainer = ref(null);
+const desktopContainer = ref<HTMLElement | null>(null);
 const tiles = ref<TileOptions[]>(setTiles());
 const deletedTiles = ref<TileOptions[]>(setDeletedTiles());
+const currentActiveTileIndex = ref<number | null>(null);
 
 const updateTilesInStorage = () => {
   localStorage.setItem("tiles", JSON.stringify(tiles.value));
@@ -61,10 +76,14 @@ const updateTileDimension = (
   updateTilesInStorage();
 };
 
-const deleteTile = (tileIndex) => {
+const deleteTile = (tileIndex: number) => {
+  tiles.value[tileIndex].isActive = false;
   deletedTiles.value = deletedTiles.value.concat(
     tiles.value.splice(tileIndex, 1)
   );
+  if (tileIndex === currentActiveTileIndex.value) {
+    currentActiveTileIndex.value = null;
+  }
   updateTilesInStorage();
   updateDeletedTilesInStorage();
 };
@@ -74,23 +93,46 @@ const restoreLastDeleted = () => {
 
   if (deletedTiles.value.length > 0) {
     restoredTile = deletedTiles.value.pop();
-    restoredTile.height = DefaultTile.HEIGHT;
-    restoredTile.width = DefaultTile.WIDTH;
-    restoredTile.left =
-      desktopContainer.value?.getBoundingClientRect().width / 2 -
-      DefaultTile.WIDTH / 2;
-    restoredTile.top =
-      desktopContainer.value?.getBoundingClientRect().height / 2 -
-      DefaultTile.HEIGHT / 2;
-    tiles.value.push(restoredTile);
+    restoredTile!.height = DefaultTile.HEIGHT;
+    restoredTile!.width = DefaultTile.WIDTH;
+
+    if (desktopContainer.value !== null) {
+      restoredTile!.left =
+        desktopContainer.value.getBoundingClientRect().width / 2 -
+        DefaultTile.WIDTH / 2;
+      restoredTile!.top =
+        desktopContainer.value.getBoundingClientRect().height / 2 -
+        DefaultTile.HEIGHT / 2;
+    }
+
+    tiles.value.push(restoredTile!);
     updateTilesInStorage();
     updateDeletedTilesInStorage();
   }
+};
+
+const setActive = (index: number) => {
+  if (index === currentActiveTileIndex.value) {
+    return;
+  }
+
+  if (
+    currentActiveTileIndex.value !== null &&
+    index !== currentActiveTileIndex.value
+  ) {
+    tiles.value[currentActiveTileIndex.value].isActive = false;
+  }
+
+  tiles.value[index].isActive = true;
+  currentActiveTileIndex.value = index;
 };
 </script>
 
 <template>
   <h1 class="main-title">Рабочий стол инвестора</h1>
+  <p class="resize-hint">
+    *Для измения размеров плитки, потяните за её правый нижний угол
+  </p>
   <div ref="desktopContainer" class="investor-desktop">
     <TileItem
       v-for="(tile, index) in tiles"
@@ -101,6 +143,7 @@ const restoreLastDeleted = () => {
       @moveTile="updateTilePosition"
       @resize="updateTileDimension"
       @deleteTile="deleteTile"
+      @setActive="setActive"
     ></TileItem>
     <DeletedContainer
       v-if="deletedTiles.length > 0"
@@ -113,10 +156,14 @@ const restoreLastDeleted = () => {
 <style>
 .investor-desktop {
   flex-grow: 1;
-  border-top: 5px solid #607d8b;
   position: relative;
 
   background-color: #263238;
   overflow: hidden;
+}
+
+.resize-hint {
+  font-size: 14px;
+  margin: 0 50px 10px;
 }
 </style>
