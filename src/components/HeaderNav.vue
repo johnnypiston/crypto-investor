@@ -27,10 +27,6 @@
   list-style: none;
 }
 
-.main-nav li:not(:first-child) {
-  margin-left: 10px;
-}
-
 .main-nav a {
   display: block;
   padding: 15px;
